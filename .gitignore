@@ -1,0 +1,4 @@
+.todo
+outputs/
+__pycache__/
+*.ipynb
