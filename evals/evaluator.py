@@ -13,7 +13,7 @@ class EvaluationType(Enum):
     SUBTRACTION = "subtraction"
     MULTIPLICATION = "multiplication"
     DIVISION = "division"
-    
+
     def from_str(s: str) -> "EvaluationType":
         if s == "addition":
             return EvaluationType.ADDITION
@@ -37,6 +37,9 @@ def map_with_progress(f: callable, xs: List[Any], num_threads: int = 50):
         return list(tqdm(pool.imap(f, xs), total=len(xs)))
 
 class Evaluator:
+    def __init__(self, data: str = NUMBERS_CSV_PATH):
+        self.data = data
+
     # This can be overriden for another prompt structure like chain-of-thought, few-shot prompting...
     def get_prompt(self, number1: int, number2: int, eval_type: EvaluationType) -> str:
         """
@@ -51,10 +54,10 @@ class Evaluator:
             prompt = f"What is {number1} times {number2}?"
         elif eval_type == EvaluationType.DIVISION:
             prompt = f"What is {number1} divided by {number2}?"
-        
+
         prompt += "Think step by step and return your answer as Answer: <answer>."
         return prompt
-    
+
     def get_target(self, number1: int, number2: int, eval_type: EvaluationType) -> str:
         """
         Get the target from two numbers and the evaluation type.
@@ -67,11 +70,10 @@ class Evaluator:
             return str(number1 * number2)
         elif eval_type == EvaluationType.DIVISION:
             return str(number1 / number2)
-            
-    @staticmethod
-    def from_type(eval_type: EvaluationType) -> str:
-        return NUMBERS_CSV_PATH # Might need to diversify per task later
-    
+
+    def from_type(self, eval_type: EvaluationType) -> str:
+        return self.data # Might need to diversify per task later
+
     # This can be overriden for another evaluation metric
     def evaluate_generation(self, generation: str, target: str) -> float:
         """
@@ -86,10 +88,10 @@ class Evaluator:
         number1, number2 = instance["number1"], instance["number2"]
         prompt = self.get_prompt(number1, number2, eval_type)
         target = self.get_target(number1, number2, eval_type)
-        
+
         generation = generate_func(prompt)
         return generation, self.evaluate_generation(generation, target)
-        
+
     def evaluate(self, generate_func: callable, outdir: str, eval_type: List[EvaluationType], max_iter: Optional[int] = None) -> Dict[str, float]:
         """
         Generate a text from a prompt using the model and evaluate it against the target.
@@ -100,9 +102,9 @@ class Evaluator:
         for eval_type, path in csv_path:
             df = pd.read_csv(path)
             iterations = min(len(df), max_iter) if max_iter else len(df)
-            # decrease size of df 
+            # decrease size of df
             df = df.sample(iterations)
-            
+
             print(f"Starting model on {path} for {iterations} iterations")
             # evaluate the model
             list_of_tuples = map_with_progress(

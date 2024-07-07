@@ -1,7 +1,7 @@
 import random
 import pandas as pd
 
-def make_data(max_digits: int = 10, outpath: str = "data/numbers.csv"):
+def make_data(max_digits: int = 10, iters_per_comb: int = 10, outpath: str = "data/numbers.csv"):
     """
     For any task, we need to generate data for evaluation.
     We do this up to max_digit numbers. We want 10 examples
@@ -11,7 +11,7 @@ def make_data(max_digits: int = 10, outpath: str = "data/numbers.csv"):
     data = []
     for i in range(1, max_digits + 1):
         for j in range(1, max_digits + 1):
-            for _ in range(10):
+            for _ in range(iters_per_comb):
                 number1 = random.randint(10 ** (i - 1), 10 ** i)
                 number2 = random.randint(10 ** (j - 1), 10 ** j)
                 data.append({
@@ -27,4 +27,4 @@ def make_data(max_digits: int = 10, outpath: str = "data/numbers.csv"):
     return df
 
 if __name__ == "__main__":
-    make_data()
+    make_data(iters_per_comb=100, outpath="data/numbers_100.csv")
